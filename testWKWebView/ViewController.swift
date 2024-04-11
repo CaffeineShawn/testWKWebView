@@ -17,13 +17,13 @@ class ViewController: UIViewController, WKNavigationDelegate {
         // Create WKWebView instance
         webView = WKWebView(frame: .zero, configuration: WKWebViewConfiguration())
 
+        webView.navigationDelegate = self
+        
         // Load HTML page using HTTPS URL request
         if let url = URL(string: "https://www.baidu.com") {
             let request = URLRequest(url: url)
             webView.load(request)
         }
-
-        webView.navigationDelegate = self
 
         // Button to present WebViewController modally
         let presentButton = UIButton(type: .system)
@@ -52,6 +52,20 @@ class ViewController: UIViewController, WKNavigationDelegate {
         let webViewController = WebViewController()
         webViewController.webView = self.webView
         present(webViewController, animated: true, completion: nil)
+    }
+    
+    fileprivate func callNormalJS(_ _webView: WKWebView) {
+        // Call evaluateJavaScript
+        let jsCode = """
+            console.log('hello world')
+        """
+        _webView.evaluateJavaScript(jsCode) { (result, error) in
+            if let error = error {
+                print("Error executing JavaScript: \(error.localizedDescription)")
+            } else {
+                print("JavaScript executed successfully")
+            }
+        }
     }
     
     fileprivate func callDeadLockJS(_ _webView: WKWebView) {
@@ -92,6 +106,8 @@ class ViewController: UIViewController, WKNavigationDelegate {
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         print("Web view navigation finished")
+        
+        callNormalJS(webView)
     }
     
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
@@ -124,12 +140,6 @@ class WebViewController: UIViewController {
 
         // Create WKWebView instance
         view.addSubview(webView)
-
-        // Load HTML page using HTTPS URL request
-        if let url = URL(string: "https://example.com") {
-            let request = URLRequest(url: url)
-            webView.load(request)
-        }
 
         // Set constraints for WKWebView
         webView.translatesAutoresizingMaskIntoConstraints = false
